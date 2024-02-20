@@ -1,0 +1,1 @@
+# An interpreter inspired by the book "Writing An Interpreter in Go"
