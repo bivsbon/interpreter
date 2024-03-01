@@ -243,8 +243,6 @@ func TestIfStatement(t *testing.T) {
 	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
 		return
 	}
-
-	t.Errorf(exp.String())
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
@@ -286,6 +284,30 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			t.Errorf("expected %q, got=%q", tt.expected, actual)
 		}
 	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `
+	fn (x, y) {return x + y;}
+	`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("not expression statement, got=%T", program.Statements[0])
+	}
+
+	literal, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.FunctionLiteral, got=%T", stmt.Expression)
+	}
+	t.Errorf(literal.String())
 }
 
 func TestOperatorPrecedenceString(t *testing.T) {

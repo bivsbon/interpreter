@@ -67,6 +67,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.parseInParenExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FUNCTION, p.parseFunctionExpression)
 
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
@@ -96,6 +97,26 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.NextToken()
 	expression.Right = p.parseExpression(PREFIX)
 	return expression
+}
+
+func (p *Parser) parseFunctionExpression() ast.Expression {
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	function := &ast.FunctionLiteral{Token: p.curToken, Parameters: []*ast.Identifier{}}
+	p.NextToken()
+	for !p.peekTokenIs(token.RPAREN) {
+		if !p.peekTokenIs(token.IDENT) {
+			return nil
+		}
+		p.NextToken()
+		function.Parameters = append(function.Parameters, &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal})
+		if !p.peekTokenIs(token.COMMA) || !p.peekTokenIs(token.RPAREN) {
+			return nil
+		}
+	}
+	function.Body = p.parseBlockStatement()
+	return function
 }
 
 func (p *Parser) parseIfExpression() ast.Expression {
